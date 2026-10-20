@@ -8,7 +8,7 @@ from PySide6.QtWidgets import (
 )
 from src.storage import load_history, clear_history
 from src.utils import _is_valid_url
-from src.theme import T, STYLE, TextIconButton, make_icon_pixmap
+from src.theme import T, STYLE, TextIconButton, make_icon_pixmap, make_app_icon
 
 class HistoryDialog(QDialog):
     redownload = Signal(str)
@@ -16,6 +16,7 @@ class HistoryDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Download History")
+        self.setWindowIcon(make_app_icon())
         self.resize(880, 530)
         self.setStyleSheet(STYLE)
         self._history_items = []

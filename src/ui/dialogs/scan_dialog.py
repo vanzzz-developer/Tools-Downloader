@@ -1,13 +1,14 @@
 from PySide6.QtCore import Qt, Signal, QTimer
 from PySide6.QtGui import QColor
 from PySide6.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QProgressBar, QFrame
-from src.theme import T, STYLE, make_icon_pixmap, TextIconButton
+from src.theme import T, STYLE, make_icon_pixmap, TextIconButton, make_app_icon
 
 class ScanDialog(QDialog):
     cancelled = Signal()
 
     def __init__(self, parent=None):
         super().__init__(parent, Qt.WindowType.FramelessWindowHint | Qt.WindowType.Dialog)
+        self.setWindowIcon(make_app_icon())
         self.setFixedSize(380, 190)
         self.setStyleSheet(STYLE)
         self._anim = 0
@@ -105,6 +106,7 @@ class PlaylistSelectDialog(QDialog):
     def __init__(self, pl_title: str, items: list[tuple[str, str]], parent=None):
         super().__init__(parent)
         self.setWindowTitle("Select Playlist Videos")
+        self.setWindowIcon(make_app_icon())
         self.resize(760, 480)
         self.setStyleSheet(STYLE)
         self.pl_title = pl_title or "Playlist"

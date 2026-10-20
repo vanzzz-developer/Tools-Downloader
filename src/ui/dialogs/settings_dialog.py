@@ -5,12 +5,13 @@ from PySide6.QtWidgets import (
     QComboBox, QGroupBox, QButtonGroup, QRadioButton, QCheckBox,
     QTabWidget, QWidget, QDialogButtonBox, QFileDialog, QMessageBox
 )
-from src.theme import T, STYLE, TextIconButton
+from src.theme import T, STYLE, TextIconButton, icon, make_app_icon
 
 class SettingsDialog(QDialog):
     def __init__(self, cfg: dict, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Settings")
+        self.setWindowIcon(make_app_icon())
         self.setMinimumWidth(500)
         self.setStyleSheet(STYLE)
         self.cfg = dict(cfg)
@@ -81,7 +82,7 @@ class SettingsDialog(QDialog):
         g2l.addLayout(fqr)
         wl.addWidget(g2)
         wl.addStretch()
-        tabs.addTab(w, "  General  ")
+        tabs.addTab(w, icon("settings", T['blue_400']), "  General  ")
 
         w2 = QWidget()
         w2l = QVBoxLayout(w2)
@@ -131,7 +132,7 @@ class SettingsDialog(QDialog):
         g4l.addLayout(sr)
         w2l.addWidget(g4)
         w2l.addStretch()
-        tabs.addTab(w2, "  Metadata  ")
+        tabs.addTab(w2, icon("list", T['blue_400']), "  Metadata  ")
 
         w3 = QWidget()
         w3l = QVBoxLayout(w3)
@@ -167,13 +168,15 @@ class SettingsDialog(QDialog):
             g6l.addWidget(c)
         w3l.addWidget(g6)
         w3l.addStretch()
-        tabs.addTab(w3, "  Network  ")
+        tabs.addTab(w3, icon("link", T['blue_400']), "  Network  ")
 
         bb = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
         ok_btn = bb.button(QDialogButtonBox.StandardButton.Ok)
         ca_btn = bb.button(QDialogButtonBox.StandardButton.Cancel)
         ok_btn.setObjectName("btn_primary")
         ca_btn.setObjectName("btn_ghost")
+        ok_btn.setIcon(icon("check_circle", "#ffffff", 14))
+        ca_btn.setIcon(icon("x", T['text_secondary'], 13))
         ok_btn.setFixedHeight(34)
         ca_btn.setFixedHeight(34)
         bb.accepted.connect(self._accept)

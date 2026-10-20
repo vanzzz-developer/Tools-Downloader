@@ -7,6 +7,14 @@ from src.theme import make_app_icon
 from src.ui.main_window import MiniDownload
 
 def main():
+    if sys.platform == "win32":
+        try:
+            import ctypes
+            myappid = f"vannsothunh.{APP_NAME}.{APP_VER}".replace(" ", "")
+            ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
+        except Exception:
+            pass
+
     app = QApplication(sys.argv)
     app.setApplicationName(APP_NAME)
     app.setApplicationVersion(APP_VER)
@@ -20,6 +28,7 @@ def main():
     font.setStyleStrategy(QFont.StyleStrategy.PreferAntialias | QFont.StyleStrategy.NoSubpixelAntialias)
     app.setFont(font)
     win = MiniDownload()
+    win.setWindowIcon(app_icon)
     win.show()
     return app.exec()
 

@@ -180,17 +180,20 @@ class TestUIComponents(unittest.TestCase):
     def test_dialogs(self):
         scan = ScanDialog()
         self.assertEqual(scan.windowTitle(), "")
+        self.assertFalse(scan.windowIcon().isNull())
         scan.close()
         scan.deleteLater()
 
         cfg = dict(DEFAULT_SETTINGS)
         settings = SettingsDialog(cfg)
         self.assertEqual(settings.windowTitle(), "Settings")
+        self.assertFalse(settings.windowIcon().isNull())
         settings.close()
         settings.deleteLater()
 
         history = HistoryDialog()
         self.assertEqual(history.windowTitle(), "Download History")
+        self.assertFalse(history.windowIcon().isNull())
         # Test history search filter
         history.le_search.setText("non_existent_query_xyz")
         # All rows should be hidden
@@ -205,6 +208,7 @@ class TestUIComponents(unittest.TestCase):
         # PlaylistSelectDialog
         videos = [("https://example.com/v1", "Song 1"), ("https://example.com/v2", "Song 2")]
         pl_dlg = PlaylistSelectDialog("Test Album", videos)
+        self.assertFalse(pl_dlg.windowIcon().isNull())
         self.assertEqual(len(pl_dlg.selected_items), 2)
         pl_dlg._deselect_all()
         self.assertEqual(len(pl_dlg.selected_items), 0)
@@ -218,6 +222,7 @@ class TestUIComponents(unittest.TestCase):
     def test_main_window(self):
         win = MiniDownload()
         self.assertIn(APP_NAME, win.windowTitle())
+        self.assertFalse(win.windowIcon().isNull())
         self.assertEqual(win.table.rowCount(), 0)
 
         # Enqueue item
@@ -261,6 +266,20 @@ class TestUIComponents(unittest.TestCase):
         win._clear_failed()
         self.assertEqual(win.table.rowCount(), 2)
         self.assertEqual(win._sb_fail.text(), "Failed: 0")
+
+        # Test Status column icons
+        win._enqueue("https://example.com/test_icon", prefill_title="Icon Test")
+        test_uid = win._row_uid.get(0)
+        self.assertFalse(win.table.item(0, win.C_STATUS).icon().isNull())
+
+        win._set_cell_clr(test_uid, win.C_STATUS, "Complete", "#00ff00")
+        self.assertFalse(win.table.item(0, win.C_STATUS).icon().isNull())
+
+        win._set_cell_clr(test_uid, win.C_STATUS, "Failed", "#ff0000")
+        self.assertFalse(win.table.item(0, win.C_STATUS).icon().isNull())
+
+        win._set_cell_clr(test_uid, win.C_STATUS, "Downloading", "#0000ff")
+        self.assertFalse(win.table.item(0, win.C_STATUS).icon().isNull())
 
         # Clear queue
         win._clear_all()

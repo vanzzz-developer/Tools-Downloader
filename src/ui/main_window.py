@@ -4,7 +4,7 @@ import subprocess
 from datetime import datetime
 from pathlib import Path
 
-from PySide6.QtCore import Qt, QTimer
+from PySide6.QtCore import Qt, QTimer, QSize
 from PySide6.QtGui import QColor, QCursor, QAction
 from PySide6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QFrame, QLabel,
@@ -106,29 +106,29 @@ class MiniDownload(QMainWindow):
     def _build(self):
         mb = self.menuBar()
         m_app = mb.addMenu("Application")
-        a_pref = QAction("  Preferences", self)
+        a_pref = QAction(icon("settings", T['blue_400']), "  Preferences", self)
         a_pref.setShortcut("Ctrl+,")
         a_pref.triggered.connect(self._open_settings)
         m_app.addAction(a_pref)
         m_app.addSeparator()
-        a_quit = QAction("  Exit", self)
+        a_quit = QAction(icon("x", T['red_500']), "  Exit", self)
         a_quit.setShortcut("Ctrl+Q")
         a_quit.triggered.connect(self.close)
         m_app.addAction(a_quit)
 
         m_tools = mb.addMenu("Tools")
-        a_hist = QAction("  Download History", self)
+        a_hist = QAction(icon("history", T['blue_400']), "  Download History", self)
         a_hist.triggered.connect(self._open_history)
         m_tools.addAction(a_hist)
-        self.a_update_ytdlp = QAction("  Update yt-dlp", self)
+        self.a_update_ytdlp = QAction(icon("rotate_cw", T['green_400']), "  Update yt-dlp", self)
         self.a_update_ytdlp.triggered.connect(self._update_ytdlp)
         m_tools.addAction(self.a_update_ytdlp)
-        a_open = QAction("  Open Save Folder", self)
+        a_open = QAction(icon("folder_open", T['amber_400']), "  Open Save Folder", self)
         a_open.triggered.connect(self._open_folder)
         m_tools.addAction(a_open)
 
         m_help = mb.addMenu("Help")
-        a_about = QAction("  About", self)
+        a_about = QAction(icon("info", T['blue_400']), "  About", self)
         a_about.triggered.connect(
             lambda: QMessageBox.information(
                 self, "About",
@@ -372,7 +372,8 @@ class MiniDownload(QMainWindow):
         self.table.setColumnWidth(self.C_SPEED,  80)
         self.table.setColumnWidth(self.C_SIZE,   74)
         self.table.setColumnWidth(self.C_ETA,    50)
-        self.table.setColumnWidth(self.C_STATUS, 125)
+        self.table.setColumnWidth(self.C_STATUS, 135)
+        self.table.setIconSize(QSize(15, 15))
 
         self.table.verticalHeader().setVisible(False)
         self.table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
@@ -874,7 +875,9 @@ class MiniDownload(QMainWindow):
         self.table.setItem(row, self.C_BAR, pi)
         for col, txt in ((self.C_SPEED, "—"), (self.C_SIZE, "—"), (self.C_ETA, "—")):
             self.table.setItem(row, col, _it(txt, C, T['text_muted']))
-        self.table.setItem(row, self.C_STATUS, _it("Waiting", C, T['text_secondary']))
+        st_it = _it("Waiting", C, T['text_secondary'])
+        st_it.setIcon(icon("list", T['text_muted'], 13))
+        self.table.setItem(row, self.C_STATUS, st_it)
         self.table.setItem(row, self.C_URL,    _it(url, clr=T['text_muted']))
         task = DLTask(uid, url, self.cfg)
         task.sig.progress.connect(self._on_progress, Qt.ConnectionType.QueuedConnection)
@@ -1167,6 +1170,20 @@ class MiniDownload(QMainWindow):
             self.table.setItem(row, col, it)
         it.setText(txt)
         it.setForeground(QColor(clr))
+        if col == self.C_STATUS:
+            st = txt.strip()
+            if st == "Complete":
+                it.setIcon(icon("check_circle", T['green_400'], 13))
+            elif st in ("Failed", "Stopped", "403: Forbidden", "429: Rate Limited", "Network Timeout") or "Error" in st or "Bot Check" in st or "Low disk" in st:
+                it.setIcon(icon("x", T['red_500'], 13))
+            elif st == "Downloading" or "%" in st:
+                it.setIcon(icon("download", T['blue_400'], 13))
+            elif st == "Waiting":
+                it.setIcon(icon("list", T['text_muted'], 13))
+            elif st == "Stopping":
+                it.setIcon(icon("square", T['amber_400'], 12))
+            else:
+                it.setIcon(QIcon())
 
     def _set_prog(self, uid, pct, state):
         row = self._uid_map.get(uid, -1)
