@@ -46,6 +46,10 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 
 [Files]
 Source: "dist\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
+Source: "bin\ffmpeg.exe"; DestDir: "{app}\bin"; Flags: ignoreversion
+Source: "bin\ffprobe.exe"; DestDir: "{app}\bin"; Flags: ignoreversion
+Source: "bin\ffplay.exe"; DestDir: "{app}\bin"; Flags: ignoreversion
+Source: "bin\yt-dlp.exe"; DestDir: "{app}\bin"; Flags: ignoreversion
 Source: "assets\icon.ico"; DestDir: "{app}\assets"; Flags: ignoreversion
 Source: "assets\icon.png"; DestDir: "{app}\assets"; Flags: ignoreversion
 
