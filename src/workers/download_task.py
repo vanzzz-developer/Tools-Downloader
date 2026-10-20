@@ -15,6 +15,8 @@ class DLTask:
         "360":  "bestvideo[height<=360]+bestaudio/best[height<=360]/best",
         "MP3":  "bestaudio/best",
         "M4A":  "bestaudio[ext=m4a]/bestaudio/best",
+        "WAV":  "bestaudio/best",
+        "FLAC": "bestaudio/best",
     }
 
     def __init__(self, uid, url, cfg_ref: dict):
@@ -74,8 +76,16 @@ class DLTask:
             dl  = d.get("downloaded_bytes", 0)
             spd = d.get("speed") or 0
             eta = d.get("eta") or 0
-            self._sz = self._fmtsz(tot) if tot else (self._fmtsz(dl) if dl else "—")
-            pct = min(100.0, max(0.0, (dl / tot * 100))) if tot else 0.0
+            if tot:
+                pct = min(100.0, max(0.0, (dl / tot * 100)))
+                self._sz = self._fmtsz(tot)
+            elif d.get("fragment_count") and d.get("fragment_index"):
+                # Handle HLS / Live streams where total_bytes is None
+                pct = min(100.0, max(0.0, (d["fragment_index"] / d["fragment_count"] * 100)))
+                self._sz = self._fmtsz(dl) if dl else "—"
+            else:
+                pct = 0.0
+                self._sz = self._fmtsz(dl) if dl else "—"
             self.sig.progress.emit(
                 self.uid, pct,
                 f"{spd/1048576:.2f} MB/s" if spd else "—",
@@ -84,6 +94,11 @@ class DLTask:
             )
         elif d["status"] == "finished":
             self.sig.progress.emit(self.uid, 100.0, "—", self._sz, "—")
+
+    def _pp_hook(self, d):
+        """Allow cancellation during FFmpeg audio extraction or video merging."""
+        if self._cancel:
+            raise Exception("__cancel__")
 
     def run(self):
         try:
@@ -95,7 +110,7 @@ class DLTask:
         cfg   = self.cfg
         fmt   = cfg.get("default_format", "MP4")
         qual  = cfg.get("default_quality", "Best")
-        audio = fmt in ("MP3", "M4A")
+        audio = fmt in ("MP3", "M4A", "WAV", "FLAC")
         nm    = cfg.get("save_name_mode", "title")
 
         name_tmpl = {
@@ -105,6 +120,20 @@ class DLTask:
 
         try:
             save_dir = _ensure_save_dir(cfg.get("save_dir", str(Path.home() / "Downloads")))
+            # Check available disk space (prevent abrupt disk-full crashes)
+            import shutil
+            try:
+                usage = shutil.disk_usage(save_dir)
+                free_mb = usage.free / (1024 * 1024)
+                if free_mb < 200:
+                    self.sig.finished.emit(
+                        self.uid, False,
+                        f"Low disk space ({free_mb:.0f}MB remaining)",
+                        "—"
+                    )
+                    return
+            except OSError:
+                pass
         except OSError as e:
             self.sig.finished.emit(self.uid, False, f"Save folder error: {e}", "—")
             return
@@ -112,16 +141,17 @@ class DLTask:
         outtmpl = str(save_dir / name_tmpl)
 
         opts = {
-            "outtmpl":             outtmpl,
-            "progress_hooks":      [self._hook],
-            "quiet":               True,
-            "no_warnings":         True,
-            "noprogress":          True,
-            "noplaylist":          True,
-            "socket_timeout":      30,
-            "retries":             10,
-            "fragment_retries":    10,
-            "file_access_retries": 5,
+            "outtmpl":              outtmpl,
+            "progress_hooks":       [self._hook],
+            "postprocessor_hooks":  [self._pp_hook],
+            "quiet":                True,
+            "no_warnings":          True,
+            "noprogress":           True,
+            "noplaylist":           True,
+            "socket_timeout":       30,
+            "retries":              10,
+            "fragment_retries":     10,
+            "file_access_retries":  5,
             "extractor_args": {
                 "youtube": {
                     "player_client": ["ios", "android", "mweb"]
@@ -136,11 +166,13 @@ class DLTask:
 
         if audio:
             opts["format"] = self.RES.get(fmt, self.RES["MP3"])
-            opts["postprocessors"] = [{
+            pp = {
                 "key": "FFmpegExtractAudio",
                 "preferredcodec": fmt.lower(),
-                "preferredquality": "320"
-            }]
+            }
+            if fmt == "MP3":
+                pp["preferredquality"] = "320"
+            opts["postprocessors"] = [pp]
         else:
             opts["format"] = self.RES.get(qual, self.RES["Best"])
             if fmt == "MP4":

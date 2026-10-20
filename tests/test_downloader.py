@@ -32,7 +32,7 @@ from src.workers import (
     DLSignals, DLTask, DLWorker, PlaylistExpandWorker, _UpdateThread
 )
 from src.ui import (
-    ProgressDelegate, ScanDialog, SettingsDialog, HistoryDialog, MiniDownload
+    ProgressDelegate, ScanDialog, SettingsDialog, HistoryDialog, PlaylistSelectDialog, MiniDownload
 )
 
 
@@ -82,6 +82,13 @@ class TestStorage(unittest.TestCase):
         self.assertIn("save_dir", s)
         self.assertIn("max_threads", s)
         self.assertIn("default_format", s)
+
+    def test_audio_settings_validation(self):
+        save_settings({"default_format": "WAV"})
+        self.assertEqual(load_settings()["default_format"], "WAV")
+        save_settings({"default_format": "FLAC"})
+        self.assertEqual(load_settings()["default_format"], "FLAC")
+        save_settings(dict(DEFAULT_SETTINGS))
 
     def test_history_operations(self):
         clear_history()
@@ -142,6 +149,32 @@ class TestWorkersAndTasks(unittest.TestCase):
         w.cancel()
         self.assertTrue(w._cancel)
 
+    def test_audio_formats_and_hls_progress(self):
+        self.assertIn("WAV", DLTask.RES)
+        self.assertIn("FLAC", DLTask.RES)
+        self.assertEqual(DLTask.RES["WAV"], "bestaudio/best")
+        self.assertEqual(DLTask.RES["FLAC"], "bestaudio/best")
+
+        # Test HLS progress calculation via _hook
+        cfg = dict(DEFAULT_SETTINGS)
+        task = DLTask("dl_hls", "https://example.com/stream", cfg)
+        progress_captured = []
+        task.sig.progress.connect(lambda uid, pct, spd, eta, sz: progress_captured.append((pct, spd, eta, sz)))
+
+        # When total_bytes is None, uses fragment_index / fragment_count
+        hls_hook_data = {
+            "status": "downloading",
+            "downloaded_bytes": 1024 * 1024,
+            "total_bytes": None,
+            "fragment_index": 5,
+            "fragment_count": 10,
+            "speed": 1024 * 500,
+            "eta": 30,
+        }
+        task._hook(hls_hook_data)
+        self.assertTrue(len(progress_captured) > 0)
+        self.assertEqual(progress_captured[-1][0], 50)  # 5 / 10 = 50%
+
 
 class TestUIComponents(unittest.TestCase):
     def test_dialogs(self):
@@ -168,6 +201,18 @@ class TestUIComponents(unittest.TestCase):
             self.assertFalse(history.tb.isRowHidden(r))
         history.close()
         history.deleteLater()
+
+        # PlaylistSelectDialog
+        videos = [("https://example.com/v1", "Song 1"), ("https://example.com/v2", "Song 2")]
+        pl_dlg = PlaylistSelectDialog("Test Album", videos)
+        self.assertEqual(len(pl_dlg.selected_items), 2)
+        pl_dlg._deselect_all()
+        self.assertEqual(len(pl_dlg.selected_items), 0)
+        pl_dlg._select_all()
+        self.assertEqual(len(pl_dlg.selected_items), 2)
+        pl_dlg.close()
+        pl_dlg.deleteLater()
+
         _app.processEvents()
 
     def test_main_window(self):
@@ -197,6 +242,25 @@ class TestUIComponents(unittest.TestCase):
         win._clear_done()
         # Now it should be cleared!
         self.assertEqual(win.table.rowCount(), 0)
+
+        # Test clear failed and dynamic status counters
+        win._enqueue("https://example.com/v1", prefill_title="V1")
+        win._enqueue("https://example.com/v2", prefill_title="V2")
+        win._enqueue("https://example.com/v3", prefill_title="V3")
+        win._pending.clear()
+
+        win.table.item(0, win.C_STATUS).setText("Complete")
+        win.table.item(1, win.C_STATUS).setText("Failed")
+        win.table.item(2, win.C_STATUS).setText("Waiting")
+        win._update_status_counters()
+
+        self.assertEqual(win._sb_done.text(), "Done: 1")
+        self.assertEqual(win._sb_fail.text(), "Failed: 1")
+
+        # Test _clear_failed removes failed row
+        win._clear_failed()
+        self.assertEqual(win.table.rowCount(), 2)
+        self.assertEqual(win._sb_fail.text(), "Failed: 0")
 
         # Clear queue
         win._clear_all()

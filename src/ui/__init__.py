@@ -1,5 +1,5 @@
 from src.ui.delegates import ProgressDelegate, PROG_ROLE
-from src.ui.dialogs import ScanDialog, SettingsDialog, HistoryDialog
+from src.ui.dialogs import ScanDialog, SettingsDialog, HistoryDialog, PlaylistSelectDialog
 from src.ui.main_window import MiniDownload
 
 __all__ = [
@@ -8,6 +8,7 @@ __all__ = [
     "ScanDialog",
     "SettingsDialog",
     "HistoryDialog",
+    "PlaylistSelectDialog",
     "MiniDownload",
 ]
 

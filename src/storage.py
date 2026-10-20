@@ -1,10 +1,20 @@
 import json
 import threading as _threading
-from src.config import SETTINGS_FILE, HISTORY_FILE, DEFAULT_SETTINGS
+from src.config import (
+    SETTINGS_FILE, HISTORY_FILE, DEFAULT_SETTINGS,
+    LEGACY_SETTINGS_FILE, LEGACY_HISTORY_FILE
+)
 from src.utils import _validate_save_dir, _validate_proxy, _atomic_write
 
 def load_settings() -> dict:
     s = dict(DEFAULT_SETTINGS)
+    # Automatic migration from legacy config
+    if not SETTINGS_FILE.exists() and LEGACY_SETTINGS_FILE.exists():
+        try:
+            SETTINGS_FILE.write_text(LEGACY_SETTINGS_FILE.read_text("utf-8"), "utf-8")
+        except OSError:
+            pass
+
     if SETTINGS_FILE.exists():
         try:
             loaded = json.loads(SETTINGS_FILE.read_text("utf-8"))
@@ -16,7 +26,7 @@ def load_settings() -> dict:
                 s["max_threads"] = max(1, min(16, int(s.get("max_threads", 4))))
             except (TypeError, ValueError):
                 s["max_threads"] = DEFAULT_SETTINGS["max_threads"]
-            if s.get("default_format") not in ("MP4", "MKV", "WEBM", "MP3", "M4A"):
+            if s.get("default_format") not in ("MP4", "MKV", "WEBM", "MP3", "M4A", "WAV", "FLAC"):
                 s["default_format"] = DEFAULT_SETTINGS["default_format"]
             if s.get("default_quality") not in ("Best", "4K", "2K", "1080", "720", "480", "360"):
                 s["default_quality"] = DEFAULT_SETTINGS["default_quality"]
@@ -45,6 +55,13 @@ def load_history() -> list:
     with _history_lock:
         if _history_cache is not None:
             return list(_history_cache)
+        # Automatic migration from legacy history
+        if not HISTORY_FILE.exists() and LEGACY_HISTORY_FILE.exists():
+            try:
+                HISTORY_FILE.write_text(LEGACY_HISTORY_FILE.read_text("utf-8"), "utf-8")
+            except OSError:
+                pass
+
         if HISTORY_FILE.exists():
             try:
                 _history_cache = json.loads(HISTORY_FILE.read_text("utf-8"))
@@ -80,6 +97,7 @@ def clear_history():
         _history_cache = []
         try:
             HISTORY_FILE.unlink(missing_ok=True)
+            LEGACY_HISTORY_FILE.unlink(missing_ok=True)
         except OSError:
             pass
 

@@ -8,9 +8,13 @@ APP_VER_TUPLE   = tuple(int(x) for x in APP_VER.split("."))
 APP_FONT_FAMILY = "Noto Sans Khmer"
 APP_FONT_STACK  = f"'{APP_FONT_FAMILY}', 'Khmer Sangam MN', 'Khmer MN', 'Khmer UI', 'Leelawadee UI', 'Segoe UI', 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif"
 
-HISTORY_FILE    = Path.home() / ".mini_dl_history.json"
-SETTINGS_FILE   = Path.home() / ".mini_dl_settings.json"
-LOG_FILE        = Path.home() / ".mini_dl.log"
+HISTORY_FILE        = Path.home() / ".tools_downloader_history.json"
+SETTINGS_FILE       = Path.home() / ".tools_downloader_settings.json"
+LOG_FILE            = Path.home() / ".tools_downloader.log"
+
+# Legacy paths for transparent backward compatibility
+LEGACY_HISTORY_FILE = Path.home() / ".mini_dl_history.json"
+LEGACY_SETTINGS_FILE= Path.home() / ".mini_dl_settings.json"
 
 _log = _logging.getLogger("tools_downloader")
 _log.setLevel(_logging.DEBUG)

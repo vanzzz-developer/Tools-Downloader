@@ -19,7 +19,7 @@ from src.utils import _is_valid_url, _ensure_save_dir
 from src.storage import load_settings, save_settings, append_history
 from src.theme import T, STYLE, make_app_icon, make_icon_pixmap, icon, TextIconButton
 from src.ui.delegates import ProgressDelegate, PROG_ROLE
-from src.ui.dialogs import ScanDialog, SettingsDialog, HistoryDialog
+from src.ui.dialogs import ScanDialog, PlaylistSelectDialog, SettingsDialog, HistoryDialog
 from src.workers import DLTask, DLWorker, PlaylistExpandWorker, _UpdateThread
 
 
@@ -85,14 +85,14 @@ class MiniDownload(QMainWindow):
         self._yt_dlp_ready = False
         self._updating_ytdlp = False
         self._ctr = 0
-        self._done_n = 0
-        self._fail_n = 0
         self._scan_dlg = None
         self._expand_workers: list = []
         self._remove_on_finish: set[str] = set()
         # Scan state — initialized here to avoid AttributeError on early cancel
         self._scan_queue: list = []
         self._scan_stop = False
+        self._current_pl_title = ""
+        self._current_pl_videos: list[tuple[str, str]] = []
         self._scan_total = 0
         self._scan_done = 0
         self._scan_added = 0
@@ -158,7 +158,7 @@ class MiniDownload(QMainWindow):
         self.setStatusBar(self.sb)
         self.sb_msg = QLabel("Ready")
         self.sb_msg.setStyleSheet(
-            f"color:#ffffff; background:transparent;"
+            f"color:{T['text_primary']}; background:transparent;"
             f" font-size:11px; font-family:{APP_FONT_STACK}; padding:0 4px;"
         )
         self.sb.addWidget(self.sb_msg, 1)
@@ -201,7 +201,7 @@ class MiniDownload(QMainWindow):
         sec_lbl = QLabel("ADD VIDEO LINKS")
         sec_lbl.setObjectName("sec_lbl")
         hint = QLabel("One URL per line  ·  YouTube  TikTok  Instagram  Twitter  1,000+ sites")
-        hint.setStyleSheet("color:#ffffff; font-size:10px;")
+        hint.setStyleSheet(f"color:{T['text_muted']}; font-size:10px;")
         hr.addWidget(sec_ico)
         hr.addSpacing(5)
         hr.addWidget(sec_lbl)
@@ -260,7 +260,7 @@ class MiniDownload(QMainWindow):
         snr = QHBoxLayout()
         snr.setSpacing(12)
         snl = QLabel("Save name:")
-        snl.setStyleSheet("color:#ffffff; font-size:11px;")
+        snl.setStyleSheet(f"color:{T['text_secondary']}; font-size:11px;")
         snr.addWidget(snl)
         self._sn_grp    = QButtonGroup(self)
         self.chk_sn_t   = QRadioButton("Title")
@@ -277,7 +277,7 @@ class MiniDownload(QMainWindow):
         exr = QHBoxLayout()
         exr.setSpacing(12)
         exl = QLabel("Extras:")
-        exl.setStyleSheet("color:#ffffff; font-size:11px;")
+        exl.setStyleSheet(f"color:{T['text_secondary']}; font-size:11px;")
         exr.addWidget(exl)
         self.chk_thumb = QCheckBox("Thumbnail")
         self.chk_desc  = QCheckBox("Description")
@@ -289,12 +289,12 @@ class MiniDownload(QMainWindow):
         fqr = QHBoxLayout()
         fqr.setSpacing(10)
         fl = QLabel("Format:")
-        fl.setStyleSheet("color:#ffffff; font-size:11px;")
+        fl.setStyleSheet(f"color:{T['text_secondary']}; font-size:11px;")
         self.cb_fmt = QComboBox()
-        self.cb_fmt.addItems(["MP4", "MKV", "WEBM", "MP3", "M4A"])
+        self.cb_fmt.addItems(["MP4", "MKV", "WEBM", "MP3", "M4A", "WAV", "FLAC"])
         self.cb_fmt.setFixedHeight(30)
         ql = QLabel("Quality:")
-        ql.setStyleSheet("color:#ffffff; font-size:11px;")
+        ql.setStyleSheet(f"color:{T['text_secondary']}; font-size:11px;")
         self.cb_q = QComboBox()
         self.cb_q.addItems(["Best", "4K", "2K", "1080", "720", "480", "360"])
         self.cb_q.setFixedHeight(30)
@@ -355,7 +355,7 @@ class MiniDownload(QMainWindow):
         self.lbl_q = QLabel("DOWNLOAD QUEUE")
         self.lbl_q.setObjectName("sec_lbl")
         self.lbl_q_count = QLabel("0 items")
-        self.lbl_q_count.setStyleSheet("color:#ffffff; font-size:11px;")
+        self.lbl_q_count.setStyleSheet(f"color:{T['text_secondary']}; font-size:11px;")
         hr.addWidget(qh_ico)
         hr.addSpacing(5)
         hr.addWidget(self.lbl_q)
@@ -395,6 +395,7 @@ class MiniDownload(QMainWindow):
         self.btn_del   = TextIconButton("Delete Selected", "trash",        obj="btn_ghost", icon_color=T['red_500'],        icon_size=13)
         self.btn_clra  = TextIconButton("Clear All",       "x",            obj="btn_ghost", icon_color=T['text_secondary'], icon_size=13)
         self.btn_clrd  = TextIconButton("Clear Done",      "check_circle", obj="btn_ghost", icon_color=T['green_400'],      icon_size=13)
+        self.btn_clrf  = TextIconButton("Clear Failed",    "x",            obj="btn_ghost", icon_color=T['red_500'],        icon_size=13)
         self.btn_retry = TextIconButton("Retry Failed",    "rotate_cw",    obj="btn_ghost", icon_color=T['amber_400'],      icon_size=13)
         _ss = lambda clr: (
             f"QPushButton {{ color:{clr}; background:{T['bg_raised']}; border:1px solid {T['border']};"
@@ -402,11 +403,13 @@ class MiniDownload(QMainWindow):
         )
         self.btn_del.setStyleSheet(_ss(T['red_500']))
         self.btn_clrd.setStyleSheet(_ss(T['green_400']))
+        self.btn_clrf.setStyleSheet(_ss(T['red_500']))
         self.btn_retry.setStyleSheet(_ss(T['amber_400']))
         for b, fn in (
             (self.btn_del,   self._delete_selected),
             (self.btn_clra,  self._clear_all),
             (self.btn_clrd,  self._clear_done),
+            (self.btn_clrf,  self._clear_failed),
             (self.btn_retry, self._retry_all)
         ):
             b.setFixedHeight(28)
@@ -414,7 +417,7 @@ class MiniDownload(QMainWindow):
             lay.addWidget(b)
         lay.addStretch()
         tl = QLabel("Threads")
-        tl.setStyleSheet("color:#ffffff; font-size:11px;")
+        tl.setStyleSheet(f"color:{T['text_secondary']}; font-size:11px;")
         self.sp_threads = QComboBox()
         self.sp_threads.addItems([str(i) for i in range(1, 17)])
         cur_t = str(self.cfg.get("max_threads", 4))
@@ -460,7 +463,7 @@ class MiniDownload(QMainWindow):
     def _on_fmt_changed(self):
         fmt = self.cb_fmt.currentText()
         self.cfg["default_format"] = fmt
-        is_audio = fmt in ("MP3", "M4A")
+        is_audio = fmt in ("MP3", "M4A", "WAV", "FLAC")
         self.cb_q.setEnabled(not is_audio)
 
     def _check_dep(self):
@@ -547,11 +550,26 @@ class MiniDownload(QMainWindow):
     def _set_status(self, msg):
         self.sb_msg.setText(msg)
 
+    def _update_status_counters(self):
+        done = 0
+        failed = 0
+        for r in range(self.table.rowCount()):
+            it = self.table.item(r, self.C_STATUS)
+            if it:
+                txt = it.text().strip()
+                if txt == "Complete":
+                    done += 1
+                elif txt in ("Failed", "Stopped", "403: Forbidden", "429: Rate Limited", "Network Timeout") or "Error" in txt or "Bot Check" in txt:
+                    failed += 1
+        active = len(self._workers)
+        pending = len(self._pending)
+        self._sb_queue.setText(f"Queue: {pending}")
+        self._sb_active.setText(f"Active: {active}")
+        self._sb_done.setText(f"Done: {done}")
+        self._sb_fail.setText(f"Failed: {failed}")
+
     def _tick_status(self):
-        self._sb_queue.setText(f"Queue: {len(self._pending)}")
-        self._sb_active.setText(f"Active: {len(self._workers)}")
-        self._sb_done.setText(f"Done: {self._done_n}")
-        self._sb_fail.setText(f"Failed: {self._fail_n}")
+        self._update_status_counters()
         self._sync_action_state()
 
     def _downloads_active(self) -> bool:
@@ -724,6 +742,8 @@ class MiniDownload(QMainWindow):
 
         url = self._scan_queue.pop(0)
         self._scan_done += 1
+        self._current_pl_title = ""
+        self._current_pl_videos = []
 
         if self._scan_dlg:
             self._scan_dlg.set_progress(url, self._scan_done, self._scan_total)
@@ -741,6 +761,7 @@ class MiniDownload(QMainWindow):
         worker.start()
 
     def _on_expand_playlist_found(self, pl_title: str, total: int):
+        self._current_pl_title = pl_title or "Playlist"
         if self._scan_dlg and pl_title:
             self._scan_dlg.lbl_url.setText(f"Playlist: {pl_title[:50]}  ({total} videos)")
             self._scan_dlg.lbl_count.setText(f"{self._scan_done} / {self._scan_total} URLs  •  expanding…")
@@ -750,9 +771,7 @@ class MiniDownload(QMainWindow):
             return
         if self._scan_dlg:
             self._scan_dlg.set_progress(vid_url, idx, total)
-        self._enqueue(vid_url, prefill_title=vid_title)
-        self._scan_added += 1
-        self._update_q_label()
+        self._current_pl_videos.append((vid_url, vid_title))
 
     def _on_expand_finished(self, ok: bool, msg: str, worker=None):
         if worker in self._expand_workers:
@@ -762,6 +781,27 @@ class MiniDownload(QMainWindow):
         if not ok and not self._scan_stop:
             self._set_status(f"Scan error: {msg}")
             _log.warning("Expand finished with error: %s", msg)
+
+        # Allow user to select/deselect videos if multiple were found
+        if self._current_pl_videos and not self._scan_stop:
+            if len(self._current_pl_videos) > 1:
+                if self._scan_dlg:
+                    self._scan_dlg.hide()
+                dlg = PlaylistSelectDialog(self._current_pl_title, self._current_pl_videos, self)
+                if dlg.exec():
+                    for v_url, v_title in dlg.selected_items:
+                        self._enqueue(v_url, prefill_title=v_title)
+                        self._scan_added += 1
+                if self._scan_dlg and not self._scan_stop:
+                    self._scan_dlg.show()
+            else:
+                for v_url, v_title in self._current_pl_videos:
+                    self._enqueue(v_url, prefill_title=v_title)
+                    self._scan_added += 1
+            self._current_pl_videos = []
+            self._update_q_label()
+            self._update_status_counters()
+
         if not self._scan_stop:
             self._scan_next_url()
 
@@ -849,6 +889,7 @@ class MiniDownload(QMainWindow):
     def _update_q_label(self):
         n = self.table.rowCount()
         self.lbl_q_count.setText(f"{n} item{'s' if n != 1 else ''}")
+        self._update_status_counters()
         self._sync_action_state()
 
     def _ctx_menu(self, pos):
@@ -982,6 +1023,13 @@ class MiniDownload(QMainWindow):
             else:
                 self._pending.pop(0)
         self._sync_action_state()
+        self._update_status_counters()
+        if len(self._workers) == 0 and not self._pending and self._tasks:
+            self._set_status("All downloads finished!")
+            try:
+                QApplication.alert(self, 3000)
+            except Exception:
+                pass
 
     def closeEvent(self, event):
         if self._workers:
@@ -1076,12 +1124,9 @@ class MiniDownload(QMainWindow):
         if ok:
             clr = T['green_400']
             state = "done"
-            self._done_n += 1
         else:
             clr   = T['text_secondary'] if msg == "Stopped" else T['red_500']
             state = "stopped" if msg == "Stopped" else "error"
-            if state == "error":
-                self._fail_n += 1
         self._set_prog(uid, 100.0 if ok else self._get_prog(row), state)
         self._set_cell_clr(uid, self.C_STATUS, msg[:22], clr)
         if not ok and 0 <= row < self.table.rowCount():
@@ -1096,14 +1141,17 @@ class MiniDownload(QMainWindow):
         ui = self.table.item(row, self.C_URL)
         fmt = self._tasks[uid].cfg.get("default_format", "") if uid in self._tasks else self.cb_fmt.currentText()
         real_title = ni.text() if ni else ""
+        real_filepath = self._tasks[uid].filepath if uid in self._tasks else None
         append_history({
             "date": datetime.now().strftime("%Y-%m-%d %H:%M"),
             "title": real_title,
             "url": ui.text() if ui else "",
             "fmt": fmt,
             "size": size,
-            "ok": ok
+            "ok": ok,
+            "filepath": real_filepath,
         })
+        self._update_status_counters()
         self.sb_msg.setText(f"{'Done' if ok else 'Failed'}: {real_title[:60]}")
 
     def _on_title(self, uid, title):
@@ -1220,8 +1268,6 @@ class MiniDownload(QMainWindow):
             if row < self.table.rowCount():
                 self.table.removeRow(row)
         self._rebuild_maps()
-        self._done_n = 0
-        self._fail_n = 0
         self._update_q_label()
         self._set_status("Queue cleared")
 
@@ -1250,6 +1296,34 @@ class MiniDownload(QMainWindow):
         self._rebuild_maps()
         self._update_q_label()
         self._set_status(f"Cleared {len(done_uids)} completed download(s)")
+
+    def _clear_failed(self):
+        failed_uids = []
+        for uid, row in list(self._uid_map.items()):
+            if uid not in self._workers and uid not in self._pending:
+                it_st = self.table.item(row, self.C_STATUS)
+                if it_st:
+                    txt = it_st.text().strip()
+                    if txt in ("Failed", "Stopped", "403: Forbidden", "429: Rate Limited", "Network Timeout") or "Error" in txt or "Bot Check" in txt:
+                        failed_uids.append(uid)
+        if not failed_uids:
+            self._set_status("No failed downloads to clear")
+            return
+        rows_to_remove = sorted(
+            [self._uid_map[uid] for uid in failed_uids if self._uid_map.get(uid, -1) >= 0],
+            reverse=True
+        )
+        for uid in failed_uids:
+            self._tasks.pop(uid, None)
+            row = self._uid_map.pop(uid, -1)
+            self._row_uid.pop(row, None)
+            self._remove_on_finish.discard(uid)
+        for row in rows_to_remove:
+            if row < self.table.rowCount():
+                self.table.removeRow(row)
+        self._rebuild_maps()
+        self._update_q_label()
+        self._set_status(f"Cleared {len(failed_uids)} failed download(s)")
 
     def _rebuild_maps(self):
         self._uid_map.clear()
