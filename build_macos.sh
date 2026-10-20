@@ -24,6 +24,12 @@ else
     echo "[WARNING] FFmpeg not found in PATH! You can install it via: brew install ffmpeg"
 fi
 
+# Automatically download native macOS binaries if not present
+if [ ! -f "bin/macos/ffmpeg" ] || [ ! -f "bin/macos/yt-dlp" ]; then
+    echo "[INFO] macOS binaries not found in bin/macos/. Fetching now..."
+    python3 setup_macos_binaries.py || bash download_macos_binaries.sh || true
+fi
+
 # Build arguments for macOS App bundle
 ARGS=(
     --noconsole
@@ -37,8 +43,10 @@ ARGS=(
     --collect-all "yt_dlp"
 )
 
-# Include bin directory if binaries are provided
-if [ -d "bin" ]; then
+# Bundle bin/macos as bin if available, or bin directory
+if [ -d "bin/macos" ]; then
+    ARGS+=(--add-data "bin/macos:bin")
+elif [ -d "bin" ]; then
     ARGS+=(--add-data "bin:bin")
 fi
 
@@ -50,3 +58,4 @@ echo "========================================================"
 echo "[SUCCESS] Build Complete!"
 echo "Application bundle created at: dist/Tools Downloader.app"
 echo "========================================================"
+

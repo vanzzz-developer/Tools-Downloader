@@ -85,10 +85,13 @@ def _first_existing_path(*paths: Path) -> Path | None:
 def _bundled_binary(name: str) -> Path | None:
     root = Path(__file__).resolve().parent.parent
     candidates = [
+        _dist_dir() / "bin" / "macos" / name,
         _dist_dir() / "bin" / name,
         _dist_dir() / name,
+        _app_dir() / "bin" / "macos" / name,
         _app_dir() / "bin" / name,
         _app_dir() / name,
+        root / "bin" / "macos" / name,
         root / "bin" / name,
         root / name,
     ]
@@ -101,13 +104,19 @@ def _bundled_binary(name: str) -> Path | None:
         candidates.extend([
             Path("/opt/homebrew/bin") / name,
             Path("/usr/local/bin") / name,
+            Path.home() / ".tools_downloader" / "bin" / name,
         ])
     return _first_existing_path(*candidates)
 
 def _yt_dlp_exe() -> Path | None:
     exe_name = "yt-dlp.exe" if sys.platform == "win32" else "yt-dlp"
     # Check side-by-side with app executable first (persistent across runs)
-    for p in (_dist_dir() / "bin" / exe_name, _dist_dir() / exe_name):
+    candidates = [
+        _dist_dir() / "bin" / "macos" / exe_name,
+        _dist_dir() / "bin" / exe_name,
+        _dist_dir() / exe_name,
+    ]
+    for p in candidates:
         if p.exists():
             return p
     # Look in bundled files (_MEIPASS)

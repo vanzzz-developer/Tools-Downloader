@@ -161,6 +161,9 @@ source .venv/bin/activate
 # Install dependencies
 pip install -r requirements.txt
 
+# Download native FFmpeg & yt-dlp binaries for macOS
+python3 setup_macos_binaries.py
+
 # Run application
 python3 main.py
 ```

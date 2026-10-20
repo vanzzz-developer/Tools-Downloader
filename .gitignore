@@ -9,6 +9,12 @@ dist/
 
 # Large Binaries (>100MB exceeds GitHub push limits)
 bin/*.exe
+bin/ffmpeg
+bin/ffprobe
+bin/ffplay
+bin/yt-dlp
+bin/macos/*
+!bin/macos/.gitkeep
 
 # Virtual Environment
 .venv/
