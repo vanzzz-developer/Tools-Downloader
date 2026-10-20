@@ -15,7 +15,7 @@
 
 <br/>
 
-[English](#-key-features) • [ភាសាខ្មែរ (Khmer Overview)](#-សេចក្ដីសង្ខេបជាភាសាខ្មែរ) • [Windows Setup](#-getting-started-windows) • [macOS Setup](#-getting-started-macos) • [Building](#-building-standalone-executables)
+[English](#-key-features) • [ភាសាខ្មែរ (Khmer Overview)](#-សេចក្ដីសង្ខេបជាភាសាខ្មែរ) • [Windows Setup](#-getting-started-windows) • [macOS Setup](#-getting-started-macos) • [Building Executables](#-building-standalone-executables)
 
 </div>
 
@@ -44,9 +44,9 @@
   - Integrated speed limiter to preserve your bandwidth when needed.
   - Real-time download progress, live speed (MB/s), and friendly ETA (`3m 15s`).
 
-- **📦 Native & Self-Contained:**
-  - **Windows:** Bundled `.exe` and Inno Setup installer embedding FFmpeg, FFprobe, FFplay, and yt-dlp.
-  - **macOS:** Native `.app` bundle, automatic Homebrew FFmpeg detection (`/opt/homebrew/bin` & `/usr/local/bin`).
+- **📦 100% Native & Self-Contained:**
+  - **Windows:** Bundled Portable `.exe` and Inno Setup installer embedding FFmpeg, FFprobe, FFplay, and yt-dlp (Zero setup for end-users).
+  - **macOS:** Native `.app` bundle, automated binary downloaders (`setup_macos_binaries.py` / `download_macos_binaries.sh`), and automatic Homebrew fallback.
 
 - **🎨 Modern Fluent UI:**
   - Sleek Dark / Light theme with smooth animations and intuitive controls.
@@ -77,7 +77,8 @@ Tools Downloader leverages the comprehensive extractor network of `yt-dlp`, supp
 * **ទាញយកកម្រិតច្បាស់ខ្ពស់:** គាំទ្រដល់កម្រិត 4K, 2K, 1080p Full HD (MP4 H.264) និងបម្លែងសំឡេងជា MP3 កម្រិតច្បាស់ 320 kbps។
 * **ទាញយកម្តងបានច្រើន:** អាច Copy links ជាច្រើនដាក់ចូល ឬ Drag-and-drop file `.txt` ចូល App ផ្ទាល់។
 * **ស្កេន Playlist & Channel:** អាចជ្រើសរើសវីដេអូណាមួយដែលចង់បាន ឬមិនចង់បានពីក្នុង Playlist មុនពេលទាញយក។
-* **គាំទ្រទាំងស្រុងលើ Windows & Mac:** គាំទ្រទាំងលើ Windows 10/11 និង macOS (Apple Silicon M1/M2/M3/M4 & Intel) ដោយមានប្រព័ន្ធស្វែងរក FFmpeg ស្វ័យប្រវត្តិតាមរយៈ Homebrew។
+* **គាំទ្រ Windows 10 / 11:** មានទាំង File Portable `.exe` និង File Installer Setup Wizard (`Setup.exe`) ដែលបង្កប់ FFmpeg & yt-dlp ស្រេច ១០០% (មិនបាច់ Install អ្វីបន្ថែមឡើយ)។
+* **គាំទ្រ macOS (Apple Silicon & Intel):** មាន Script Auto-download FFmpeg & yt-dlp សម្រាប់ macOS និងអាច Build ជា `.app` bundle ដោយស្វ័យប្រវត្តិ។
 
 ---
 
@@ -85,40 +86,47 @@ Tools Downloader leverages the comprehensive extractor network of `yt-dlp`, supp
 
 ```plaintext
 Tools Downloader/
-├── assets/                  # Icons and application branding
-│   ├── icon.ico             # Windows executable icon
-│   └── icon.png             # macOS / Linux & UI icons
-├── bin/                     # Embedded native binaries (ignored from git)
-│   ├── ffmpeg.exe           # FFmpeg multimedia processor (Windows)
-│   ├── ffprobe.exe          # Media stream analyzer (Windows)
-│   ├── ffplay.exe           # Integrated lightweight media previewer
-│   └── yt-dlp.exe           # CLI binary for standalone updates
-├── src/                     # Core application source code
-│   ├── ui/                  # Qt6 UI Components
-│   │   ├── dialogs/         # History, Settings, and Playlist Scanner dialogs
-│   │   ├── delegates.py     # Custom TableView item delegates & action buttons
-│   │   └── main_window.py   # Primary application window (with macOS/Windows handlers)
-│   ├── workers/             # Multi-threaded QThread background workers
-│   │   ├── download_worker.py # yt-dlp download & post-processing logic
-│   │   ├── playlist_scanner.py# Fast metadata and playlist extraction
-│   │   └── signals.py       # Thread-safe Qt signals
-│   ├── app.py               # Application bootstrap & lifecycle
-│   ├── config.py            # Global constants, presets & macOS/Windows font stack
-│   ├── storage.py           # SQLite / JSON download history persistence
-│   ├── theme.py             # Dark & Light stylesheet engine
-│   └── utils.py             # Formatter, runtime path resolver (macOS Homebrew & Windows)
-├── tests/                   # Automated unit and integration tests
-│   └── test_downloader.py   # Test suite for downloader, formatters & options
-├── .gitignore               # Clean git rules (excludes large binaries & build files)
-├── Build App.bat            # One-click Windows batch script to build .exe
-├── Build Installer.bat      # One-click Windows Inno Setup installer generator
-├── build_macos.sh           # One-click macOS build script to create .app bundle
-├── Push to GitHub.bat       # Instant push helper script
-├── Tools Downloader.spec    # PyInstaller configuration with embedded assets
-├── installer.iss            # Inno Setup Windows installer configuration
-├── main.py                  # Application entry point
-├── requirements.txt         # Python package dependencies
-└── README.md                # Project documentation
+├── assets/                       # Icons and application branding
+│   ├── icon.ico                  # Windows executable icon
+│   └── icon.png                  # macOS / Linux & UI icons
+├── bin/                          # Embedded native binaries (ignored from git)
+│   ├── macos/                    # Native binaries for macOS (arm64 / x86_64)
+│   │   ├── ffmpeg                # Static FFmpeg binary for macOS
+│   │   ├── ffprobe               # Static FFprobe binary for macOS
+│   │   └── yt-dlp                # Universal yt-dlp binary for macOS
+│   ├── ffmpeg.exe                # Windows FFmpeg processor
+│   ├── ffprobe.exe               # Windows FFprobe stream analyzer
+│   ├── ffplay.exe                # Windows FFplay previewer
+│   └── yt-dlp.exe                # Windows yt-dlp CLI binary
+├── src/                          # Core application source code
+│   ├── ui/                       # Qt6 UI Components
+│   │   ├── dialogs/              # History, Settings, and Playlist Scanner dialogs
+│   │   ├── delegates.py          # Custom TableView item delegates & action buttons
+│   │   └── main_window.py        # Primary application window (Windows & macOS native handlers)
+│   ├── workers/                  # Multi-threaded QThread background workers
+│   │   ├── download_worker.py    # yt-dlp download & post-processing logic
+│   │   ├── playlist_scanner.py   # Fast metadata and playlist extraction
+│   │   ├── update_worker.py      # Engine self-updater
+│   │   └── signals.py            # Thread-safe Qt signals
+│   ├── app.py                    # Application bootstrap & lifecycle
+│   ├── config.py                 # Global constants, presets & macOS/Windows font stack
+│   ├── storage.py                # SQLite / JSON download history persistence
+│   ├── theme.py                  # Dark & Light stylesheet engine
+│   └── utils.py                  # Formatter, runtime path resolver (macOS Homebrew & Windows)
+├── tests/                        # Automated unit and integration tests
+│   └── test_downloader.py        # Test suite for downloader, formatters & options
+├── .gitignore                    # Clean git rules (excludes large binaries & build files)
+├── Build App.bat                 # One-click Windows batch script to build standalone .exe
+├── Build Installer.bat           # One-click Windows Inno Setup installer generator
+├── build_macos.sh                # One-click macOS build script to create .app bundle
+├── download_macos_binaries.sh    # macOS bash script to download native FFmpeg & yt-dlp
+├── setup_macos_binaries.py       # Cross-platform Python script to fetch macOS binaries
+├── Push to GitHub.bat            # Instant push helper script for GitHub
+├── Tools Downloader.spec         # PyInstaller configuration with embedded assets
+├── installer.iss                 # Inno Setup Windows installer configuration
+├── main.py                       # Application entry point
+├── requirements.txt              # Python package dependencies
+└── README.md                     # Project documentation
 ```
 
 ---
@@ -127,17 +135,25 @@ Tools Downloader/
 
 ### Prerequisites
 - **Windows 10 / 11** (64-bit)
-- **Python 3.10+**
+- **Python 3.10+** (if running from source)
 
-### Installation
+### Installation (From Source)
 ```bash
 git clone https://github.com/vanzzz-developer/Tools-Downloader.git
 cd Tools-Downloader
+
+# Create and activate virtual environment
 python -m venv .venv
 .venv\Scripts\activate
+
+# Install dependencies
 pip install -r requirements.txt
+
+# Run application
 python main.py
 ```
+
+> **For End-Users:** You do NOT need Python! Simply download `dist/Tools Downloader.exe` (Portable) or install `dist/Tools_Downloader_Setup_v1.0.exe` (Setup Wizard).
 
 ---
 
@@ -145,11 +161,10 @@ python main.py
 
 ### Prerequisites
 - **macOS 12.0+ (Monterey, Ventura, Sonoma, Sequoia)**
-- Supports both **Apple Silicon (M1/M2/M3/M4)** and **Intel**
-- **Python 3.10+** (Install via Homebrew: `brew install python`)
-- **FFmpeg** (Install via Homebrew: `brew install ffmpeg`)
+- Supports both **Apple Silicon (M1/M2/M3/M4)** and **Intel Mac**
+- **Python 3.10+** (`brew install python`)
 
-### Installation
+### Installation (From Source)
 ```bash
 git clone https://github.com/vanzzz-developer/Tools-Downloader.git
 cd Tools-Downloader
@@ -161,8 +176,12 @@ source .venv/bin/activate
 # Install dependencies
 pip install -r requirements.txt
 
-# Download native FFmpeg & yt-dlp binaries for macOS
+# Option A: Auto-download native macOS FFmpeg & yt-dlp binaries
 python3 setup_macos_binaries.py
+# (or run: bash download_macos_binaries.sh)
+
+# Option B: Use system FFmpeg via Homebrew
+# brew install ffmpeg
 
 # Run application
 python3 main.py
@@ -172,17 +191,17 @@ python3 main.py
 
 ## 🛠️ Building Standalone Executables
 
-### 🪟 Windows (.exe)
+### 🪟 Windows (.exe Portable)
 ```bash
 # Method 1: Double-click Build App.bat
 # Method 2: Manual command
 pyinstaller "Tools Downloader.spec" --noconfirm
 ```
-Output: `dist/Tools Downloader.exe`
+Output file: `dist/Tools Downloader.exe`
 
-### 📦 Windows Setup Installer (.exe)
+### 📦 Windows Setup Installer (.exe Wizard)
 Double-click `Build Installer.bat` or compile with Inno Setup.  
-Output: `dist/Tools_Downloader_Setup_v1.0.exe`
+Output file: `dist/Tools_Downloader_Setup_v1.0.exe`
 
 ### 🍏 macOS (.app Bundle)
 Run the automated build script:
@@ -190,13 +209,13 @@ Run the automated build script:
 chmod +x build_macos.sh
 ./build_macos.sh
 ```
-Output: `dist/Tools Downloader.app`
+Output bundle: `dist/Tools Downloader.app`
 
 ---
 
 ## 🧪 Running Tests
 
-To verify all components and formatting helpers across Windows and macOS:
+To verify all components, download options, and formatters:
 
 ```bash
 python -m unittest discover tests

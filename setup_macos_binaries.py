@@ -68,3 +68,4 @@ def setup_macos_binaries(target_dir: Path = None):
 
 if __name__ == "__main__":
     setup_macos_binaries()
+
