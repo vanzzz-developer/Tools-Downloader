@@ -6,7 +6,7 @@ APP_AUTHOR      = "VannSoThunh"
 APP_VER         = "1.0.0"
 APP_VER_TUPLE   = tuple(int(x) for x in APP_VER.split("."))
 APP_FONT_FAMILY = "Noto Sans Khmer"
-APP_FONT_STACK  = f"'{APP_FONT_FAMILY}', 'Khmer UI', 'Leelawadee UI', 'Segoe UI', 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif"
+APP_FONT_STACK  = f"'{APP_FONT_FAMILY}', 'Khmer Sangam MN', 'Khmer MN', 'Khmer UI', 'Leelawadee UI', 'Segoe UI', 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif"
 
 HISTORY_FILE    = Path.home() / ".mini_dl_history.json"
 SETTINGS_FILE   = Path.home() / ".mini_dl_settings.json"

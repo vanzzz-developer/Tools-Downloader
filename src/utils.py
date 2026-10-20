@@ -92,6 +92,16 @@ def _bundled_binary(name: str) -> Path | None:
         root / "bin" / name,
         root / name,
     ]
+    # Check macOS Homebrew / system paths
+    import shutil
+    which_path = shutil.which(name)
+    if which_path:
+        candidates.append(Path(which_path))
+    if sys.platform == "darwin":
+        candidates.extend([
+            Path("/opt/homebrew/bin") / name,
+            Path("/usr/local/bin") / name,
+        ])
     return _first_existing_path(*candidates)
 
 def _yt_dlp_exe() -> Path | None:

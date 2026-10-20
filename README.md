@@ -2,19 +2,20 @@
 
 # ⚡ Tools Downloader
 
-**Modern, blazing-fast, and self-contained Video & Audio Downloader for Windows**  
+**Modern, blazing-fast, and self-contained Video & Audio Downloader for Windows & macOS**  
 *Built with Python 3, PySide6 (Qt6), yt-dlp, and FFmpeg*
 
 [![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
 [![PySide6](https://img.shields.io/badge/GUI-PySide6%20%28Qt6%29-41CD52?style=for-the-badge&logo=qt&logoColor=white)](https://wiki.qt.io/Qt_for_Python)
 [![yt-dlp](https://img.shields.io/badge/Engine-yt--dlp-red?style=for-the-badge&logo=youtube&logoColor=white)](https://github.com/yt-dlp/yt-dlp)
 [![FFmpeg](https://img.shields.io/badge/Media-FFmpeg%20Bundled-007808?style=for-the-badge&logo=ffmpeg&logoColor=white)](https://ffmpeg.org/)
-[![Platform](https://img.shields.io/badge/Platform-Windows%2010%20%2F%2011-0078D6?style=for-the-badge&logo=windows&logoColor=white)](https://www.microsoft.com/windows)
+[![Windows](https://img.shields.io/badge/Platform-Windows%2010%20%2F%2011-0078D6?style=for-the-badge&logo=windows&logoColor=white)](https://www.microsoft.com/windows)
+[![macOS](https://img.shields.io/badge/Platform-macOS%2012%2B-000000?style=for-the-badge&logo=apple&logoColor=white)](https://www.apple.com/macos)
 [![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](LICENSE)
 
 <br/>
 
-[English](#-key-features) • [ភាសាខ្មែរ (Khmer Overview)](#-សេចក្ដីសង្ខេបជាភាសាខ្មែរ) • [Installation](#-getting-started) • [Building EXE](#-building-standalone-exe)
+[English](#-key-features) • [ភាសាខ្មែរ (Khmer Overview)](#-សេចក្ដីសង្ខេបជាភាសាខ្មែរ) • [Windows Setup](#-getting-started-windows) • [macOS Setup](#-getting-started-macos) • [Building](#-building-standalone-executables)
 
 </div>
 
@@ -24,7 +25,7 @@
 
 - **🎬 Ultra High-Definition Video:**
   - Download resolutions up to **8K, 4K, 2K, 1080p Full HD**, 720p, 480p, 360p.
-  - Smart container merge: Guarantees compatible **MP4 (H.264/AAC)** format for seamless playback on any device, TV, or video editing software (CapCut, Premiere Pro, DaVinci Resolve).
+  - Smart container merge: Guarantees compatible **MP4 (H.264/AAC)** format for seamless playback on any device, Mac QuickTime, TV, or video editing software (Final Cut Pro, Premiere Pro, DaVinci Resolve, CapCut).
 
 - **🎵 True Studio Audio Extraction:**
   - Converts online media to high-fidelity **MP3 at true 320 kbps (CBR)**.
@@ -43,13 +44,13 @@
   - Integrated speed limiter to preserve your bandwidth when needed.
   - Real-time download progress, live speed (MB/s), and friendly ETA (`3m 15s`).
 
-- **📦 100% Standalone (Zero Configuration for End-Users):**
-  - All critical dependencies (`ffmpeg.exe`, `ffprobe.exe`, `ffplay.exe`, and `yt-dlp.exe`) are bundled directly inside the executable.
-  - Runs immediately on any clean Windows machine without needing Python, FFmpeg, or command-line tools installed.
+- **📦 Native & Self-Contained:**
+  - **Windows:** Bundled `.exe` and Inno Setup installer embedding FFmpeg, FFprobe, FFplay, and yt-dlp.
+  - **macOS:** Native `.app` bundle, automatic Homebrew FFmpeg detection (`/opt/homebrew/bin` & `/usr/local/bin`).
 
 - **🎨 Modern Fluent UI:**
   - Sleek Dark / Light theme with smooth animations and intuitive controls.
-  - Media Action Buttons: "Play File" (with default media player or built-in ffplay) and "Open Folder".
+  - Media Action Buttons: "Play File" (with default media player or built-in previewer) and "Open Folder".
   - Searchable History Dialog with instant keyword filtering.
   - One-click `yt-dlp` update checker inside the Settings dialog.
 
@@ -72,11 +73,11 @@ Tools Downloader leverages the comprehensive extractor network of `yt-dlp`, supp
 
 ## 🇰🇭 សេចក្ដីសង្ខេបជាភាសាខ្មែរ
 
-**Tools Downloader** គឺជាកម្មវិធីទាញយក Video និង Audio ដ៏ទំនើប លឿន និងងាយស្រួលប្រើប្រាស់បំផុតសម្រាប់ប្រព័ន្ធប្រតិបត្តិការ Windows៖
+**Tools Downloader** គឺជាកម្មវិធីទាញយក Video និង Audio ដ៏ទំនើប លឿន និងងាយស្រួលប្រើប្រាស់បំផុតសម្រាប់ប្រព័ន្ធប្រតិបត្តិការ **Windows និង macOS**៖
 * **ទាញយកកម្រិតច្បាស់ខ្ពស់:** គាំទ្រដល់កម្រិត 4K, 2K, 1080p Full HD (MP4 H.264) និងបម្លែងសំឡេងជា MP3 កម្រិតច្បាស់ 320 kbps។
 * **ទាញយកម្តងបានច្រើន:** អាច Copy links ជាច្រើនដាក់ចូល ឬ Drag-and-drop file `.txt` ចូល App ផ្ទាល់។
 * **ស្កេន Playlist & Channel:** អាចជ្រើសរើសវីដេអូណាមួយដែលចង់បាន ឬមិនចង់បានពីក្នុង Playlist មុនពេលទាញយក។
-* **មិនបាច់ Install អ្វីបន្ថែម:** ទាំង FFmpeg និង yt-dlp ត្រូវបានបង្កប់រួចជាស្រេចនៅក្នុង App តែមួយ យកទៅបើកលើកុំព្យូទ័រណាក៏ដើរភ្លាមៗ។
+* **គាំទ្រទាំងស្រុងលើ Windows & Mac:** គាំទ្រទាំងលើ Windows 10/11 និង macOS (Apple Silicon M1/M2/M3/M4 & Intel) ដោយមានប្រព័ន្ធស្វែងរក FFmpeg ស្វ័យប្រវត្តិតាមរយៈ Homebrew។
 
 ---
 
@@ -86,31 +87,35 @@ Tools Downloader leverages the comprehensive extractor network of `yt-dlp`, supp
 Tools Downloader/
 ├── assets/                  # Icons and application branding
 │   ├── icon.ico             # Windows executable icon
-│   └── icon.png             # UI and dialog icons
+│   └── icon.png             # macOS / Linux & UI icons
 ├── bin/                     # Embedded native binaries (ignored from git)
-│   ├── ffmpeg.exe           # FFmpeg multimedia processor
-│   ├── ffprobe.exe          # Media stream analyzer
+│   ├── ffmpeg.exe           # FFmpeg multimedia processor (Windows)
+│   ├── ffprobe.exe          # Media stream analyzer (Windows)
 │   ├── ffplay.exe           # Integrated lightweight media previewer
 │   └── yt-dlp.exe           # CLI binary for standalone updates
 ├── src/                     # Core application source code
 │   ├── ui/                  # Qt6 UI Components
 │   │   ├── dialogs/         # History, Settings, and Playlist Scanner dialogs
 │   │   ├── delegates.py     # Custom TableView item delegates & action buttons
-│   │   └── main_window.py   # Primary application window
+│   │   └── main_window.py   # Primary application window (with macOS/Windows handlers)
 │   ├── workers/             # Multi-threaded QThread background workers
 │   │   ├── download_worker.py # yt-dlp download & post-processing logic
 │   │   ├── playlist_scanner.py# Fast metadata and playlist extraction
 │   │   └── signals.py       # Thread-safe Qt signals
 │   ├── app.py               # Application bootstrap & lifecycle
-│   ├── config.py            # Global constants, presets & settings
+│   ├── config.py            # Global constants, presets & macOS/Windows font stack
 │   ├── storage.py           # SQLite / JSON download history persistence
 │   ├── theme.py             # Dark & Light stylesheet engine
-│   └── utils.py             # Formatter, runtime path resolver & binary locators
+│   └── utils.py             # Formatter, runtime path resolver (macOS Homebrew & Windows)
 ├── tests/                   # Automated unit and integration tests
 │   └── test_downloader.py   # Test suite for downloader, formatters & options
 ├── .gitignore               # Clean git rules (excludes large binaries & build files)
 ├── Build App.bat            # One-click Windows batch script to build .exe
+├── Build Installer.bat      # One-click Windows Inno Setup installer generator
+├── build_macos.sh           # One-click macOS build script to create .app bundle
+├── Push to GitHub.bat       # Instant push helper script
 ├── Tools Downloader.spec    # PyInstaller configuration with embedded assets
+├── installer.iss            # Inno Setup Windows installer configuration
 ├── main.py                  # Application entry point
 ├── requirements.txt         # Python package dependencies
 └── README.md                # Project documentation
@@ -118,87 +123,77 @@ Tools Downloader/
 
 ---
 
-## 🚀 Getting Started
+## 🚀 Getting Started (Windows)
 
 ### Prerequisites
-- **Windows 10 / 11** (64-bit recommended)
-- **Python 3.10+** (tested on Python 3.13)
+- **Windows 10 / 11** (64-bit)
+- **Python 3.10+**
 
-### Installation (From Source)
-
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/your-username/tools-downloader.git
-   cd tools-downloader
-   ```
-
-2. **Create and activate a virtual environment:**
-   ```bash
-   python -m venv .venv
-   .venv\Scripts\activate
-   ```
-
-3. **Install dependencies:**
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-4. **Setup Binaries in `bin/` directory:**
-   Place the following Windows executables inside the `bin/` folder:
-   - `ffmpeg.exe`, `ffprobe.exe`, `ffplay.exe` (Download from [gyan.dev FFmpeg Builds](https://www.gyan.dev/ffmpeg/builds/))
-   - `yt-dlp.exe` (Download from [yt-dlp Releases](https://github.com/yt-dlp/yt-dlp/releases))
-
-5. **Run the Application:**
-   ```bash
-   python main.py
-   ```
+### Installation
+```bash
+git clone https://github.com/vanzzz-developer/Tools-Downloader.git
+cd Tools-Downloader
+python -m venv .venv
+.venv\Scripts\activate
+pip install -r requirements.txt
+python main.py
+```
 
 ---
 
-## 🛠️ Building Standalone EXE
+## 🍏 Getting Started (macOS)
 
-You can compile the entire application into a single, fully self-contained `.exe` that embeds all Python runtimes, Qt libraries, FFmpeg, and yt-dlp:
+### Prerequisites
+- **macOS 12.0+ (Monterey, Ventura, Sonoma, Sequoia)**
+- Supports both **Apple Silicon (M1/M2/M3/M4)** and **Intel**
+- **Python 3.10+** (Install via Homebrew: `brew install python`)
+- **FFmpeg** (Install via Homebrew: `brew install ffmpeg`)
 
-### Method 1: One-Click Script
-Simply double-click:
-```plaintext
-Build App.bat
+### Installation
+```bash
+git clone https://github.com/vanzzz-developer/Tools-Downloader.git
+cd Tools-Downloader
+
+# Create and activate virtual environment
+python3 -m venv .venv
+source .venv/bin/activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Run application
+python3 main.py
 ```
 
-### Method 2: Manual Command
+---
+
+## 🛠️ Building Standalone Executables
+
+### 🪟 Windows (.exe)
 ```bash
-.venv\Scripts\activate
+# Method 1: Double-click Build App.bat
+# Method 2: Manual command
 pyinstaller "Tools Downloader.spec" --noconfirm
 ```
+Output: `dist/Tools Downloader.exe`
 
-The compiled standalone executable will be located at:
-```plaintext
-dist/Tools Downloader.exe
+### 📦 Windows Setup Installer (.exe)
+Double-click `Build Installer.bat` or compile with Inno Setup.  
+Output: `dist/Tools_Downloader_Setup_v1.0.exe`
+
+### 🍏 macOS (.app Bundle)
+Run the automated build script:
+```bash
+chmod +x build_macos.sh
+./build_macos.sh
 ```
-
-> **Note:** The resulting `.exe` is completely portable. You can copy it to any Windows PC and run it immediately without installing Python or FFmpeg!
-
----
-
-## 📦 Building Windows Setup Installer (.exe)
-
-To generate a professional Windows Setup Wizard with Desktop shortcut, Start Menu entry, and full uninstaller:
-
-Simply double-click:
-```plaintext
-Build Installer.bat
-```
-
-The compiled installer wizard will be located at:
-```plaintext
-dist/Tools_Downloader_Setup_v1.0.exe
-```
+Output: `dist/Tools Downloader.app`
 
 ---
 
 ## 🧪 Running Tests
 
-To verify that all components, formatting helpers, and download options are functioning properly:
+To verify all components and formatting helpers across Windows and macOS:
 
 ```bash
 python -m unittest discover tests
