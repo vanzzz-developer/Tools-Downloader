@@ -1,0 +1,22 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# PyInstaller / Build artifacts
+build/
+dist/
+
+# Large Binaries (>100MB exceeds GitHub push limits)
+bin/*.exe
+
+# Virtual Environment
+.venv/
+env/
+venv/
+
+# App local runtime files
+*.log
+.mini_dl*.json
+*.tmp
+
